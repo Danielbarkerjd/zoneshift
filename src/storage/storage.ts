@@ -62,6 +62,22 @@ export async function saveTrip(plan: TripPlan): Promise<void> {
   await AsyncStorage.setItem(KEYS.ACTIVE_TRIP, plan.id);
 }
 
+export async function deleteTrip(id: string): Promise<void> {
+  const trips = await getTrips();
+  const remaining = trips.filter(t => t.id !== id);
+  await AsyncStorage.setItem(KEYS.TRIPS, JSON.stringify(remaining));
+
+  const activeId = await AsyncStorage.getItem(KEYS.ACTIVE_TRIP);
+  if (activeId === id) {
+    const next = remaining[0];
+    if (next) {
+      await AsyncStorage.setItem(KEYS.ACTIVE_TRIP, next.id);
+    } else {
+      await AsyncStorage.removeItem(KEYS.ACTIVE_TRIP);
+    }
+  }
+}
+
 export async function getActiveTripId(): Promise<string | null> {
   return AsyncStorage.getItem(KEYS.ACTIVE_TRIP);
 }

@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getSleepProfile, saveSleepProfile } from '../../src/storage/storage';
 import type { SleepProfile, Chronotype } from '../../src/types';
 import { TimePickerModal } from '../../src/components/TimePickerModal';
+
+const CHRONOTYPE_OPTIONS: { value: Chronotype; label: string; desc: string }[] = [
+  { value: 'morning', label: 'Early Bird', desc: 'Naturally up early' },
+  { value: 'neutral', label: 'Neutral', desc: 'No strong preference' },
+  { value: 'evening', label: 'Night Owl', desc: 'Energized at night' },
+];
 
 export default function SettingsScreen() {
   const [profile, setProfile] = useState<SleepProfile | null>(null);
@@ -42,20 +48,26 @@ export default function SettingsScreen() {
             onPress={() => setShowBedPicker(true)}
           />
           <Divider />
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Chronotype</Text>
-            <View style={styles.chronoGroup}>
-              {(['morning', 'neutral', 'evening'] as Chronotype[]).map(c => (
-                <TouchableOpacity
-                  key={c}
-                  style={[styles.chronoChip, profile.chronotype === c && styles.chronoChipActive]}
-                  onPress={() => update({ chronotype: c })}
-                >
-                  <Text style={[styles.chronoChipText, profile.chronotype === c && styles.chronoChipTextActive]}>
-                    {c === 'morning' ? '🌅' : c === 'evening' ? '🌙' : '😐'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          <View style={styles.chronoSection}>
+            <Text style={styles.chronoSectionLabel}>Body Clock Type</Text>
+            <View style={styles.chronoOptions}>
+              {CHRONOTYPE_OPTIONS.map(opt => {
+                const active = profile.chronotype === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[styles.chronoOption, active && styles.chronoOptionActive]}
+                    onPress={() => update({ chronotype: opt.value })}
+                  >
+                    <Text style={[styles.chronoOptionLabel, active && styles.chronoOptionLabelActive]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={[styles.chronoOptionDesc, active && styles.chronoOptionDescActive]}>
+                      {opt.desc}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </View>
@@ -141,14 +153,23 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 15, color: '#E2E8F0', fontWeight: '500' },
   rowValue: { fontSize: 15, color: '#38BDF8', fontWeight: '600' },
   divider: { height: 1, backgroundColor: '#334155', marginHorizontal: 16 },
-  chronoGroup: { flexDirection: 'row', gap: 8 },
-  chronoChip: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#334155',
-    alignItems: 'center', justifyContent: 'center',
+  chronoSection: { padding: 16 },
+  chronoSectionLabel: { fontSize: 12, color: '#64748B', fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 },
+  chronoOptions: { flexDirection: 'row', gap: 8 },
+  chronoOption: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#334155',
   },
-  chronoChipActive: { backgroundColor: '#0369A1' },
-  chronoChipText: { fontSize: 18 },
-  chronoChipTextActive: {},
+  chronoOptionActive: { borderColor: '#38BDF8', backgroundColor: '#0C2A3D' },
+  chronoOptionLabel: { fontSize: 13, fontWeight: '700', color: '#94A3B8', marginBottom: 3, textAlign: 'center' },
+  chronoOptionLabelActive: { color: '#38BDF8' },
+  chronoOptionDesc: { fontSize: 11, color: '#475569', textAlign: 'center', lineHeight: 15 },
+  chronoOptionDescActive: { color: '#7DD3FC' },
   version: { fontSize: 12, color: '#334155', textAlign: 'center', marginTop: 8 },
 });

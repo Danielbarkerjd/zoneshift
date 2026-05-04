@@ -59,7 +59,8 @@ export default function SleepBasicsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Chronotype</Text>
+          <Text style={styles.label}>Your Body Clock</Text>
+          <Text style={styles.labelHint}>When does your energy naturally peak?</Text>
           {CHRONOTYPES.map(ct => (
             <TouchableOpacity
               key={ct.value}
@@ -79,11 +80,11 @@ export default function SleepBasicsScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip (use defaults)</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextText}>Next</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
+          <Text style={styles.skipText}>Skip — use defaults</Text>
         </TouchableOpacity>
       </View>
 
@@ -120,7 +121,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: '#F8FAFC', marginBottom: 8 },
   sub: { fontSize: 15, color: '#94A3B8', lineHeight: 22 },
   section: { marginBottom: 28 },
-  label: { fontSize: 13, color: '#64748B', fontWeight: '600', letterSpacing: 0.5, marginBottom: 10, textTransform: 'uppercase' },
+  label: { fontSize: 13, color: '#64748B', fontWeight: '600', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' },
+  labelHint: { fontSize: 13, color: '#475569', marginBottom: 10 },
   timeBtn: {
     backgroundColor: '#1E293B',
     borderRadius: 12,
@@ -151,30 +153,23 @@ const styles = StyleSheet.create({
   chronoDesc: { fontSize: 13, color: '#64748B' },
   checkmark: { fontSize: 18, color: '#38BDF8', fontWeight: '700' },
   footer: {
-    flexDirection: 'row',
     paddingHorizontal: 24,
-    paddingBottom: 12,
-    gap: 12,
+    paddingBottom: 16,
+    paddingTop: 14,
+    gap: 10,
     borderTopWidth: 1,
     borderTopColor: '#1E293B',
-    paddingTop: 16,
   },
-  skipBtn: {
-    flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  skipText: { color: '#94A3B8', fontSize: 15, fontWeight: '600' },
   nextBtn: {
-    flex: 2,
     backgroundColor: '#38BDF8',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
   },
-  nextText: { color: '#0F172A', fontSize: 16, fontWeight: '700' },
+  nextText: { color: '#0F172A', fontSize: 18, fontWeight: '800', letterSpacing: 0.2 },
+  skipBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  skipText: { color: '#475569', fontSize: 14, fontWeight: '500' },
 });

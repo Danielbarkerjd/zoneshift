@@ -5,6 +5,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getTripById } from '../../src/storage/storage';
+import { formatHourDiff } from '../../src/utils/format';
 import type { TripPlan, DaySchedule } from '../../src/types';
 
 export default function PlanScreen() {
@@ -29,7 +30,7 @@ export default function PlanScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Plan</Text>
@@ -43,7 +44,7 @@ export default function PlanScreen() {
             {input.homeCity.name} → {input.destCity.name}
           </Text>
           <View style={styles.summaryRow}>
-            <SummaryPill label="Time diff" value={`${Math.abs(hourDiff)}h ${direction === 'east' ? 'east' : direction === 'west' ? 'west' : ''}`} />
+            <SummaryPill label="Time Difference" value={`${formatHourDiff(hourDiff)} ${direction === 'east' ? 'east' : direction === 'west' ? 'west' : ''}`} />
             {isShortTripMode ? (
               <SummaryPill label="Mode" value="Short trip" color="#F59E0B" />
             ) : (
@@ -54,8 +55,7 @@ export default function PlanScreen() {
             <View style={styles.shortTripBox}>
               <Text style={styles.shortTripTitle}>Short Trip Mode</Text>
               <Text style={styles.shortTripText}>
-                With {Math.abs(hourDiff)} hour{Math.abs(hourDiff) !== 1 ? 's' : ''} difference and a short trip, shifting your clock isn't worth it.
-                Focus on alertness strategies instead:
+                {`With a ${formatHourDiff(hourDiff)} difference and a short trip, shifting your clock isn't worth it. Focus on alertness strategies instead:`}
               </Text>
               <ShortTripTip text="Use caffeine strategically during your home nighttime hours." />
               <ShortTripTip text="Seek bright light to stay alert — not to shift your clock." />
@@ -65,9 +65,7 @@ export default function PlanScreen() {
             </View>
           ) : (
             <Text style={styles.summaryStrategy}>
-              {direction === 'east'
-                ? `Advance your clock ${Math.abs(hourDiff)} hours east. Seek morning light, avoid evening light, and take melatonin early evening at destination time.`
-                : `Delay your clock ${Math.abs(hourDiff)} hours west. Seek evening light, avoid morning light, and take melatonin near destination bedtime.`}
+              {buildStrategyText(direction, hourDiff, schedule)}
             </Text>
           )}
         </View>
@@ -142,6 +140,43 @@ function phaseLabel(phase: DaySchedule['phase']): string {
   if (phase === 'pre_departure') return 'Pre-departure';
   if (phase === 'travel_day') return 'Travel ✈️';
   return 'At destination';
+}
+
+
+function buildStrategyText(
+  direction: 'east' | 'west' | 'none',
+  hourDiff: number,
+  schedule: DaySchedule[],
+): string {
+  const preDepartureDays = schedule.filter(d => d.phase === 'pre_departure').length;
+  const postDays = schedule.filter(d => d.phase === 'post_arrival').length;
+  const diffStr = formatHourDiff(hourDiff);
+
+  if (direction === 'east') {
+    const preNote = preDepartureDays > 0
+      ? `Your plan includes ${preDepartureDays} pre-departure day${preDepartureDays > 1 ? 's' : ''} to start shifting before you fly. `
+      : '';
+    return (
+      `${preNote}Each day, wake and go to bed progressively earlier. ` +
+      `Seek bright morning light as soon as you wake — it's the strongest signal to advance your clock. ` +
+      `Avoid bright light in the evening and take melatonin in the early evening (not at bedtime). ` +
+      `Expect full adjustment in about ${postDays} day${postDays !== 1 ? 's' : ''} at your destination.`
+    );
+  }
+
+  if (direction === 'west') {
+    const preNote = preDepartureDays > 0
+      ? `Your plan includes ${preDepartureDays} pre-departure day${preDepartureDays > 1 ? 's' : ''} to start shifting before you fly. `
+      : '';
+    return (
+      `${preNote}Each day, push your wake time and bedtime progressively later. ` +
+      `Seek evening light at your destination to signal your brain to stay awake longer. ` +
+      `Avoid bright morning light — wear sunglasses outdoors in the first couple of hours after waking. ` +
+      `Expect full adjustment in about ${postDays} day${postDays !== 1 ? 's' : ''} at your destination.`
+    );
+  }
+
+  return 'No significant time zone shift needed.';
 }
 
 const styles = StyleSheet.create({

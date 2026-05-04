@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getActiveTripId, getTripById } from '../../src/storage/storage';
+import { formatHourDiff } from '../../src/utils/format';
 import type { TripPlan } from '../../src/types';
 
 const TIPS_OF_DAY = [
@@ -20,11 +21,12 @@ export default function HomeScreen() {
   const [activePlan, setActivePlan] = useState<TripPlan | null>(null);
   const tipIndex = new Date().getDate() % TIPS_OF_DAY.length;
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     getActiveTripId().then(id => {
       if (id) getTripById(id).then(setActivePlan);
+      else setActivePlan(null);
     });
-  }, []);
+  }, []));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,7 +46,7 @@ export default function HomeScreen() {
               {activePlan.input.homeCity.name} → {activePlan.input.destCity.name}
             </Text>
             <Text style={styles.activePlanMeta}>
-              {Math.abs(activePlan.hourDiff)}h {activePlan.direction === 'east' ? 'east' : 'west'} •{' '}
+              {formatHourDiff(activePlan.hourDiff)} {activePlan.direction === 'east' ? 'east' : 'west'} •{' '}
               {activePlan.estimatedDaysToSync} days to sync
             </Text>
             <Text style={styles.activePlanView}>View Plan →</Text>
