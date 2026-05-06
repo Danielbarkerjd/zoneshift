@@ -49,6 +49,12 @@
         "projectId": "3670d015-aebe-40cc-b021-ae4e05edef14"
       }
     },
-    "owner": "eagleridgetech"
+    "owner": "eagleridgetech",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3670d015-aebe-40cc-b021-ae4e05edef14"
+    }
   }
 }

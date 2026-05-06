@@ -4,8 +4,8 @@ import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases
 
 export type { PurchasesOffering, PurchasesPackage };
 
-const RC_IOS_KEY = process.env.EXPO_PUBLIC_RC_IOS_KEY ?? '';
-const RC_ANDROID_KEY = process.env.EXPO_PUBLIC_RC_ANDROID_KEY ?? '';
+const RC_IOS_KEY = '';
+const RC_ANDROID_KEY = '';
 
 // Entitlement identifiers configured in RevenueCat dashboard
 export const ENTITLEMENT_ANNUAL = 'annual';

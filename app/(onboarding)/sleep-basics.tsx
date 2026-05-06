@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Chronotype } from '../../src/types';
 import { TimePickerModal } from '../../src/components/TimePickerModal';
+import { C } from '../../src/theme/colors';
 
 const CHRONOTYPES: { value: Chronotype; label: string; desc: string }[] = [
   { value: 'morning', label: 'Early Bird', desc: 'Naturally wake early, tired by 9pm' },
@@ -114,17 +115,17 @@ function formatTime12(hhmm: string): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: C.bg },
   scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 },
   header: { marginBottom: 32 },
-  step: { fontSize: 13, color: '#38BDF8', fontWeight: '600', marginBottom: 8, letterSpacing: 0.5 },
-  title: { fontSize: 28, fontWeight: '800', color: '#F8FAFC', marginBottom: 8 },
-  sub: { fontSize: 15, color: '#94A3B8', lineHeight: 22 },
+  step: { fontSize: 13, color: C.primary, fontFamily: 'Outfit_500Medium', marginBottom: 8, letterSpacing: 0.5 },
+  title: { fontSize: 28, fontFamily: 'Outfit_700Bold', color: C.textPrimary, marginBottom: 8 },
+  sub: { fontSize: 15, color: C.textSec, lineHeight: 22, fontFamily: 'Outfit_400Regular' },
   section: { marginBottom: 28 },
-  label: { fontSize: 13, color: '#64748B', fontWeight: '600', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' },
-  labelHint: { fontSize: 13, color: '#475569', marginBottom: 10 },
+  label: { fontSize: 13, color: C.textMuted, fontFamily: 'Outfit_500Medium', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' },
+  labelHint: { fontSize: 13, color: C.textMuted, marginBottom: 10, fontFamily: 'Outfit_400Regular' },
   timeBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: C.surface,
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 16,
@@ -132,44 +133,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: C.border,
   },
-  timeBtnText: { fontSize: 20, color: '#F8FAFC', fontWeight: '600' },
-  timeBtnEdit: { fontSize: 14, color: '#38BDF8', fontWeight: '600' },
+  timeBtnText: { fontSize: 20, color: C.textPrimary, fontFamily: 'Outfit_500Medium' },
+  timeBtnEdit: { fontSize: 14, color: C.primary, fontFamily: 'Outfit_500Medium' },
   chronoCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: C.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: C.border,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  chronoCardActive: { borderColor: '#38BDF8', backgroundColor: '#0F3151' },
+  chronoCardActive: { borderColor: C.primary, backgroundColor: 'rgba(26,158,143,0.12)' },
   chronoInner: { flex: 1 },
-  chronoLabel: { fontSize: 16, fontWeight: '700', color: '#E2E8F0', marginBottom: 2 },
-  chronoLabelActive: { color: '#38BDF8' },
-  chronoDesc: { fontSize: 13, color: '#64748B' },
-  checkmark: { fontSize: 18, color: '#38BDF8', fontWeight: '700' },
+  chronoLabel: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: C.textPrimary, marginBottom: 2 },
+  chronoLabelActive: { color: C.primary },
+  chronoDesc: { fontSize: 13, color: C.textMuted, fontFamily: 'Outfit_400Regular' },
+  checkmark: { fontSize: 18, color: C.primary, fontFamily: 'Outfit_700Bold' },
   footer: {
     paddingHorizontal: 24,
     paddingBottom: 16,
     paddingTop: 14,
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: C.border,
   },
   nextBtn: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: C.primary,
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
   },
-  nextText: { color: '#0F172A', fontSize: 18, fontWeight: '800', letterSpacing: 0.2 },
+  nextText: { color: '#FFFFFF', fontSize: 18, fontFamily: 'Outfit_700Bold', letterSpacing: 0.2 },
   skipBtn: {
     alignItems: 'center',
     paddingVertical: 10,
   },
-  skipText: { color: '#475569', fontSize: 14, fontWeight: '500' },
+  skipText: { color: C.textMuted, fontSize: 14, fontFamily: 'Outfit_500Medium' },
 });

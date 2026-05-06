@@ -3,26 +3,29 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { Trash2, Map } from 'lucide-react-native';
 import { getTrips, deleteTrip } from '../../src/storage/storage';
-import { formatHourDiff } from '../../src/utils/format';
+import { cancelPlanNotifications } from '../../src/utils/notifications';
+import { cityLabel } from '../../src/utils/format';
+import { DiffPill } from '../../src/components/DiffPill';
+import { C } from '../../src/theme/colors';
 import type { TripPlan } from '../../src/types';
 
 export default function TripsScreen() {
   const router = useRouter();
   const [trips, setTrips] = useState<TripPlan[]>([]);
-  const openRowRef = useRef<Swipeable | null>(null);
+  const rowRefs = useRef<Record<string, Swipeable | null>>({});
 
   useFocusEffect(useCallback(() => {
     getTrips().then(setTrips);
-    // Close any open swipe row when the tab re-focuses
-    return () => openRowRef.current?.close();
+    return () => Object.values(rowRefs.current).forEach(r => r?.close());
   }, []));
 
   function handleDelete(trip: TripPlan) {
-    openRowRef.current?.close();
+    rowRefs.current[trip.id]?.close();
     Alert.alert(
       'Delete Trip',
-      `Remove ${trip.input.homeCity.name} → ${trip.input.destCity.name}?`,
+      `Remove ${cityLabel(trip.input.homeCity)} → ${cityLabel(trip.input.destCity)}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -30,6 +33,8 @@ export default function TripsScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteTrip(trip.id);
+            cancelPlanNotifications(trip.id).catch(() => {});
+            if (trip.returnPlan) cancelPlanNotifications(trip.returnPlan.id).catch(() => {});
             setTrips(prev => prev.filter(t => t.id !== trip.id));
           },
         },
@@ -40,7 +45,7 @@ export default function TripsScreen() {
   function renderDeleteAction(trip: TripPlan) {
     return (
       <TouchableOpacity style={styles.deleteAction} onPress={() => handleDelete(trip)}>
-        <Text style={styles.deleteIcon}>🗑</Text>
+        <Trash2 size={20} color="#FFF" strokeWidth={1.5} />
         <Text style={styles.deleteLabel}>Delete</Text>
       </TouchableOpacity>
     );
@@ -50,7 +55,7 @@ export default function TripsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>📋</Text>
+          <Map size={48} color={C.border} strokeWidth={1} />
           <Text style={styles.emptyTitle}>No trips yet</Text>
           <Text style={styles.emptySub}>Your trip history will appear here.</Text>
           <TouchableOpacity style={styles.newTripBtn} onPress={() => router.push('/trip-setup')}>
@@ -76,13 +81,11 @@ export default function TripsScreen() {
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Swipeable
-            ref={ref => {
-              // Track the currently open row so we can close it when another opens
-              if (ref) openRowRef.current = ref;
-            }}
+            ref={ref => { rowRefs.current[item.id] = ref; }}
             onSwipeableWillOpen={() => {
-              // Close any previously open row
-              openRowRef.current?.close();
+              Object.entries(rowRefs.current).forEach(([id, ref]) => {
+                if (id !== item.id) ref?.close();
+              });
             }}
             renderRightActions={() => renderDeleteAction(item)}
             rightThreshold={60}
@@ -96,11 +99,16 @@ export default function TripsScreen() {
             >
               <View style={styles.tripRoute}>
                 <Text style={styles.tripRouteText}>
-                  {item.input.homeCity.name} → {item.input.destCity.name}
+                  {cityLabel(item.input.homeCity)} → {cityLabel(item.input.destCity)}
                 </Text>
-                <Text style={styles.tripMeta}>
-                  {item.input.departureDate} • {formatHourDiff(item.hourDiff)} {item.direction === 'east' ? 'east' : 'west'}
-                </Text>
+                <View style={styles.tripMetaRow}>
+                  <Text style={styles.tripMeta}>
+                    {item.returnPlan
+                      ? `Round trip · ${fmtShortDate(item.input.departureDate)} – ${fmtShortDate(item.input.returnDate ?? '')}`
+                      : item.input.departureDate}
+                  </Text>
+                  <DiffPill hourDiff={item.hourDiff} direction={item.direction} />
+                </View>
               </View>
               <Text style={styles.tripArrow}>›</Text>
             </TouchableOpacity>
@@ -111,8 +119,14 @@ export default function TripsScreen() {
   );
 }
 
+function fmtShortDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: C.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -121,26 +135,27 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     marginBottom: 4,
   },
-  title: { fontSize: 28, fontWeight: '800', color: '#F8FAFC' },
-  newBtn: { fontSize: 16, color: '#38BDF8', fontWeight: '700' },
-  hint: { fontSize: 12, color: '#334155', paddingHorizontal: 20, marginBottom: 12 },
+  title: { fontSize: 28, fontFamily: 'Outfit_700Bold', color: C.textPrimary },
+  newBtn: { fontSize: 16, color: C.primary, fontFamily: 'Outfit_700Bold' },
+  hint: { fontSize: 12, color: C.border, paddingHorizontal: 20, marginBottom: 12, fontFamily: 'Outfit_400Regular' },
   list: { paddingHorizontal: 20 },
   tripCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: C.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: C.border,
   },
   tripRoute: { flex: 1 },
-  tripRouteText: { fontSize: 16, fontWeight: '700', color: '#E2E8F0', marginBottom: 4 },
-  tripMeta: { fontSize: 13, color: '#64748B' },
-  tripArrow: { fontSize: 22, color: '#475569' },
+  tripRouteText: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: C.textPrimary, marginBottom: 4 },
+  tripMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  tripMeta: { fontSize: 13, color: C.textMuted, fontFamily: 'Outfit_400Regular' },
+  tripArrow: { fontSize: 22, color: C.textSec },
   deleteAction: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#C0392B',
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
@@ -148,12 +163,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: 4,
   },
-  deleteIcon: { fontSize: 20 },
-  deleteLabel: { fontSize: 12, color: '#FFF', fontWeight: '700' },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 22, fontWeight: '700', color: '#E2E8F0', marginBottom: 8 },
-  emptySub: { fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 32 },
-  newTripBtn: { backgroundColor: '#38BDF8', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 14 },
-  newTripBtnText: { color: '#0F172A', fontSize: 16, fontWeight: '700' },
+  deleteLabel: { fontSize: 12, color: '#FFF', fontFamily: 'Outfit_700Bold' },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, gap: 12 },
+  emptyTitle: { fontSize: 22, fontFamily: 'Outfit_700Bold', color: C.textPrimary },
+  emptySub: { fontSize: 15, color: C.textMuted, textAlign: 'center', marginBottom: 20, fontFamily: 'Outfit_400Regular' },
+  newTripBtn: { backgroundColor: C.primary, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 14 },
+  newTripBtnText: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Outfit_700Bold' },
 });

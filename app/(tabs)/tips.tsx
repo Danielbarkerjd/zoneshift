@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Sun, Clock, Pill, Coffee, Dumbbell, Briefcase, Plane, Leaf, ChevronUp, ChevronDown } from 'lucide-react-native';
+import type { ComponentType } from 'react';
+import { C } from '../../src/theme/colors';
 
-const TIPS_LIBRARY = [
+type TipsSection = {
+  category: string;
+  Icon: ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  tips: string[];
+};
+
+const TIPS_LIBRARY: TipsSection[] = [
   {
     category: 'Light Exposure',
-    icon: '☀️',
+    Icon: Sun,
     tips: [
       "Seek bright outdoor light within 1 hour of your target wake time -- it's the strongest clock signal.",
       "Avoid all screens and bright lights in the 2 hours before your target bedtime.",
@@ -16,7 +25,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'Sleep Timing',
-    icon: '😴',
+    Icon: Clock,
     tips: [
       "Start shifting your bedtime 2-3 days before departure on long eastward trips.",
       "Use earplugs and an eye mask on the plane to sleep on destination schedule, not flight schedule.",
@@ -27,7 +36,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'Melatonin',
-    icon: '💊',
+    Icon: Pill,
     tips: [
       "For eastward travel, take 0.5-1mg melatonin 5 hours before your target bedtime -- not at bedtime.",
       "Melatonin is a timing signal, not a sleeping pill. Lower doses (0.5mg) are often just as effective.",
@@ -38,7 +47,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'Caffeine & Food',
-    icon: '☕',
+    Icon: Coffee,
     tips: [
       "Stop all caffeine 8 hours before your target bedtime -- caffeine has a 5-7 hour half-life.",
       "Eating at local meal times sends a powerful secondary clock signal to your gut.",
@@ -49,7 +58,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'Exercise',
-    icon: '🏃',
+    Icon: Dumbbell,
     tips: [
       "Morning exercise at your destination reinforces the early wake signal for eastward travel.",
       "Evening exercise (before 6pm destination time) helps westward travelers stay awake longer.",
@@ -60,7 +69,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'Short Trips',
-    icon: '⚡',
+    Icon: Briefcase,
     tips: [
       "For trips under 3 days, don't try to shift your clock -- the disruption isn't worth it.",
       "Stay on home time for short trips: schedule important meetings during your home daytime hours.",
@@ -71,7 +80,7 @@ const TIPS_LIBRARY = [
   },
   {
     category: 'On the Plane',
-    icon: '✈️',
+    Icon: Plane,
     tips: [
       "Set your watch to destination time the moment you board.",
       "Sleep on the plane only if it's nighttime at your destination.",
@@ -79,6 +88,18 @@ const TIPS_LIBRARY = [
       "Get up and walk every 2 hours to maintain circulation and reduce deep vein thrombosis risk.",
       "Wear an eye mask and earplugs to control your light environment regardless of cabin lights.",
       "Avoid alcohol on the plane -- it reduces sleep quality even if you fall asleep faster.",
+    ],
+  },
+  {
+    category: 'Supplements & Wellness',
+    Icon: Leaf,
+    tips: [
+      "Magnesium glycinate (200–400mg) supports muscle relaxation and sleep quality. Take 30–60 minutes before your target bedtime. Especially helpful in the first few nights when your body resists the new schedule.",
+      "L-theanine (100–200mg) promotes calm focus without drowsiness, reducing the wired-but-tired feeling of jet lag. Take in the morning or early afternoon. Pairs well with your morning coffee.",
+      "Vitamin D (2000–4000 IU) — jet lag disrupts your natural light-based vitamin D production. Take within an hour of waking, especially arriving at a low-light destination or during winter months.",
+      "Tart cherry extract is a natural melatonin source plus anti-inflammatory compounds. Take 60–90 minutes before your target bedtime. A good alternative to synthetic melatonin.",
+      "Ashwagandha (300–600mg) helps regulate cortisol — the stress hormone jet lag throws off. Take 1–2 hours before bedtime. Helps with the 'exhausted but can't sleep' feeling.",
+      "These supplements are widely available and generally well-tolerated, but everyone's body is different. Always consult your healthcare provider before starting any new supplement, especially if you take medications or have existing health conditions.",
     ],
   },
 ];
@@ -93,58 +114,58 @@ export default function TipsScreen() {
         <Text style={styles.sub}>Science-backed jet lag advice</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {TIPS_LIBRARY.map(section => (
-          <View key={section.category} style={styles.section}>
-            <TouchableOpacity
-              style={styles.sectionHeader}
-              onPress={() => setExpanded(expanded === section.category ? null : section.category)}
-            >
-              <Text style={styles.sectionIcon}>{section.icon}</Text>
-              <Text style={styles.sectionTitle}>{section.category}</Text>
-              <Text style={styles.chevron}>{expanded === section.category ? '▲' : '▼'}</Text>
-            </TouchableOpacity>
-            {expanded === section.category && (
-              <View style={styles.tipsList}>
-                {section.tips.map((tip, i) => (
-                  <View key={i} style={styles.tipRow}>
-                    <Text style={styles.bullet}>{'•'}</Text>
-                    <Text style={styles.tipText}>{tip}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ))}
+        {TIPS_LIBRARY.map(section => {
+          const isOpen = expanded === section.category;
+          const SectionIcon = section.Icon;
+          return (
+            <View key={section.category} style={styles.section}>
+              <TouchableOpacity
+                style={styles.sectionHeader}
+                onPress={() => setExpanded(isOpen ? null : section.category)}
+              >
+                <SectionIcon
+                  size={20}
+                  color={isOpen ? C.primary : C.textSec}
+                  strokeWidth={1.5}
+                />
+                <Text style={[styles.sectionTitle, isOpen && styles.sectionTitleOpen]}>
+                  {section.category}
+                </Text>
+                {isOpen
+                  ? <ChevronUp size={16} color={C.textMuted} strokeWidth={1.5} />
+                  : <ChevronDown size={16} color={C.textMuted} strokeWidth={1.5} />
+                }
+              </TouchableOpacity>
+              {isOpen && (
+                <View style={styles.tipsList}>
+                  {section.tips.map((tip, i) => (
+                    <View key={i} style={styles.tipRow}>
+                      <Text style={styles.bullet}>{'•'}</Text>
+                      <Text style={styles.tipText}>{tip}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: C.bg },
   header: { paddingHorizontal: 20, paddingTop: 12, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: '#F8FAFC' },
-  sub: { fontSize: 14, color: '#475569', marginTop: 2 },
+  title: { fontSize: 28, fontFamily: 'Outfit_700Bold', color: C.textPrimary },
+  sub: { fontSize: 14, color: C.textMuted, marginTop: 2, fontFamily: 'Outfit_400Regular' },
   scroll: { paddingHorizontal: 20, paddingBottom: 40 },
-  section: {
-    backgroundColor: '#1E293B',
-    borderRadius: 14,
-    marginBottom: 10,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 12,
-  },
-  sectionIcon: { fontSize: 22 },
-  sectionTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#E2E8F0' },
-  chevron: { fontSize: 12, color: '#475569' },
-  tipsList: { paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 12 },
+  section: { backgroundColor: C.surface, borderRadius: 14, marginBottom: 10, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
+  sectionTitle: { flex: 1, fontSize: 16, fontFamily: 'Outfit_700Bold', color: C.textPrimary },
+  sectionTitleOpen: { color: C.primary },
+  tipsList: { paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 12 },
   tipRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  bullet: { fontSize: 16, color: '#38BDF8', lineHeight: 22 },
-  tipText: { flex: 1, fontSize: 14, color: '#CBD5E1', lineHeight: 22 },
+  bullet: { fontSize: 16, color: C.primary, lineHeight: 22 },
+  tipText: { flex: 1, fontSize: 14, color: C.textPrimary, lineHeight: 22, fontFamily: 'Outfit_400Regular' },
 });
