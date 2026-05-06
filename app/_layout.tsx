@@ -9,19 +9,12 @@ import {
   Outfit_600SemiBold,
   Outfit_700Bold,
 } from '@expo-google-fonts/outfit';
-import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { C } from '../src/theme/colors';
 import { initPurchases } from '../src/services/purchases';
+import { CRASH_KEY } from '../src/earlySetup';
 import type { ReactNode } from 'react';
-
-// Catch any JS error that escapes React — fires before the process crashes
-(ErrorUtils as any).setGlobalHandler((error: Error, isFatal?: boolean) => {
-  Alert.alert(
-    isFatal ? 'Fatal Error' : 'Error',
-    (error?.message ?? String(error)) + '\n\n' + (error?.stack ?? '').slice(0, 400),
-    [{ text: 'OK' }],
-  );
-});
 
 // Replace expo-router's default error screen so the error stays visible
 export function ErrorBoundary({ error }: { error: Error; retry: () => void }) {
@@ -68,9 +61,38 @@ export default function RootLayout() {
     Outfit_700Bold,
   });
 
+  const [savedCrash, setSavedCrash] = useState<string | null>(null);
+
   useEffect(() => {
     initPurchases();
+    // Check if a previous crash was saved — display it so we can diagnose
+    AsyncStorage.getItem(CRASH_KEY).then(val => {
+      if (val) {
+        setSavedCrash(val);
+        AsyncStorage.removeItem(CRASH_KEY).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
+
+  // Show previous crash details if we have them (will be visible until user dismisses)
+  if (savedCrash) {
+    return (
+      <ScrollView style={{ flex: 1, backgroundColor: '#0B1120', padding: 24 }}>
+        <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold', marginTop: 60, marginBottom: 12 }}>
+          Previous startup crash — screenshot and send to developer:
+        </Text>
+        <Text style={{ color: '#e8ecf4', fontSize: 12, fontFamily: 'monospace', marginBottom: 24 }}>
+          {savedCrash}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setSavedCrash(null)}
+          style={{ backgroundColor: '#1A9E8F', borderRadius: 8, padding: 14, alignItems: 'center' }}
+        >
+          <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>Dismiss & Continue</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  }
 
   if (!fontsLoaded) {
     return (
