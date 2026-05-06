@@ -9,10 +9,19 @@ import {
   Outfit_600SemiBold,
   Outfit_700Bold,
 } from '@expo-google-fonts/outfit';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { C } from '../src/theme/colors';
 import { initPurchases } from '../src/services/purchases';
 import type { ReactNode } from 'react';
+
+// Catch any JS error that escapes React — fires before the process crashes
+(ErrorUtils as any).setGlobalHandler((error: Error, isFatal?: boolean) => {
+  Alert.alert(
+    isFatal ? 'Fatal Error' : 'Error',
+    (error?.message ?? String(error)) + '\n\n' + (error?.stack ?? '').slice(0, 400),
+    [{ text: 'OK' }],
+  );
+});
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
   state = { error: null };
