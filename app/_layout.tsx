@@ -23,7 +23,24 @@ import type { ReactNode } from 'react';
   );
 });
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
+// Replace expo-router's default error screen so the error stays visible
+export function ErrorBoundary({ error }: { error: Error; retry: () => void }) {
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: '#0B1120', padding: 24 }}>
+      <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold', marginTop: 60, marginBottom: 12 }}>
+        Crash — screenshot this and send to developer:
+      </Text>
+      <Text style={{ color: '#e8ecf4', fontSize: 13, marginBottom: 12 }}>
+        {error?.message}
+      </Text>
+      <Text style={{ color: '#8a95ad', fontSize: 11, fontFamily: 'monospace' }}>
+        {error?.stack}
+      </Text>
+    </ScrollView>
+  );
+}
+
+class LocalErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
   state = { error: null };
   static getDerivedStateFromError(e: Error) { return { error: e.message + '\n' + e.stack }; }
   render() {
@@ -31,7 +48,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
       return (
         <ScrollView style={{ flex: 1, backgroundColor: '#0B1120', padding: 24 }}>
           <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold', marginTop: 60, marginBottom: 12 }}>
-            Crash caught — please screenshot this:
+            Crash caught — screenshot this:
           </Text>
           <Text style={{ color: '#e8ecf4', fontSize: 12, fontFamily: 'monospace' }}>
             {this.state.error}
@@ -64,7 +81,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ErrorBoundary>
+    <LocalErrorBoundary>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
@@ -78,6 +95,6 @@ export default function RootLayout() {
         <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack>
     </GestureHandlerRootView>
-    </ErrorBoundary>
+    </LocalErrorBoundary>
   );
 }
