@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, Component } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,9 +9,30 @@ import {
   Outfit_600SemiBold,
   Outfit_700Bold,
 } from '@expo-google-fonts/outfit';
-import { View, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { C } from '../src/theme/colors';
 import { initPurchases } from '../src/services/purchases';
+import type { ReactNode } from 'react';
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
+  state = { error: null };
+  static getDerivedStateFromError(e: Error) { return { error: e.message + '\n' + e.stack }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <ScrollView style={{ flex: 1, backgroundColor: '#0B1120', padding: 24 }}>
+          <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold', marginTop: 60, marginBottom: 12 }}>
+            Crash caught — please screenshot this:
+          </Text>
+          <Text style={{ color: '#e8ecf4', fontSize: 12, fontFamily: 'monospace' }}>
+            {this.state.error}
+          </Text>
+        </ScrollView>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -34,6 +55,7 @@ export default function RootLayout() {
   }
 
   return (
+    <ErrorBoundary>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
@@ -47,5 +69,6 @@ export default function RootLayout() {
         <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack>
     </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
