@@ -54,18 +54,33 @@ class LocalErrorBoundary extends Component<{ children: ReactNode }, { error: str
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
 
+  // If fonts hang or error, unblock after 4 seconds
+  const [fontTimedOut, setFontTimedOut] = useState(false);
+  const ready = fontsLoaded || !!fontError || fontTimedOut;
+
   const [savedCrash, setSavedCrash] = useState<string | null>(null);
 
   useEffect(() => {
+    const t = setTimeout(() => setFontTimedOut(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (fontError) {
+      console.error('[ZS FONT ERROR]', fontError);
+      AsyncStorage.setItem(CRASH_KEY, `Font load failed: ${fontError}`).catch(() => {});
+    }
+  }, [fontError]);
+
+  useEffect(() => {
     initPurchases();
-    // Check if a previous crash was saved — display it so we can diagnose
     AsyncStorage.getItem(CRASH_KEY).then(val => {
       if (val) {
         setSavedCrash(val);
@@ -94,7 +109,7 @@ export default function RootLayout() {
     );
   }
 
-  if (!fontsLoaded) {
+  if (!ready) {
     return (
       <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator color={C.primary} />
